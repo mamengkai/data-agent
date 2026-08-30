@@ -1,0 +1,21 @@
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+.idea/
+
+logs/
+*.log
+
+# 本地真实配置含数据库密码，请复制 example 后自行填写
+conf/app_config.yaml
+
+# embedding 模型权重约 1.3GB，请在本地自行准备
+docker/embedding/**/pytorch_model.bin
+docker/embedding/**/.cache/
