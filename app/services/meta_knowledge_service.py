@@ -8,6 +8,8 @@ from omegaconf import OmegaConf
 from app.conf.meta_config import MetaConfig
 from app.entities.column_info import ColumnInfo
 from app.entities.table_info import TableInfo
+from app.entities.value_info import ValueInfo
+from app.repositories.es.value_es_repository import ValueESRepository
 from app.repositories.mysql.dw.dw_mysql_repository import DWMySQLRepository
 from app.repositories.mysql.meta.meta_mysql_repository import MetaMySQLRepository
 from app.core.log import logger
@@ -19,11 +21,13 @@ class MetaKnowledgeService:
                  meta_mysql_repository: MetaMySQLRepository,
                  dw_mysql_repository: DWMySQLRepository,
                  column_qdrant_repository: ColumnQdrantRepository,
-                 embedding_client: OpenAIEmbeddings):
+                 embedding_client: OpenAIEmbeddings,
+                 value_es_repository: ValueESRepository):
         self.meta_mysql_repository: MetaMySQLRepository = meta_mysql_repository
         self.dw_mysql_repository: DWMySQLRepository = dw_mysql_repository
         self.column_qdrant_repository: ColumnQdrantRepository = column_qdrant_repository
         self.embedding_client: OpenAIEmbeddings = embedding_client
+        self.value_es_repository: ValueESRepository = value_es_repository
 
     async def build(self, config_path: Path):
         # 读取配置文件
@@ -97,6 +101,19 @@ class MetaKnowledgeService:
             await self.column_qdrant_repository.upsert(ids, embeddings, payloads)
 
             # 对指定的纬度字段取值建立全文索引
+            await self.value_es_repository.ensure_index()
+
+            values_infos: list[ValueInfo] = []
+            for table in meta_config.tables:
+                for column in table.columns:
+                    if column.sync:
+                        current_column_values = await self.dw_mysql_repository.get_column_values(table.name, column.name, limit=100000)
+                        current_values_infos = [ValueInfo(id=f"{table.name}.{column.name}.{current_column_value}",
+                                             value=current_column_value, column_id=f"{table.name}.{column.name}") for
+                                   current_column_value in current_column_values]
+                        values_infos.extend(current_values_infos)
+
+            await self.value_es_repository.index(values_infos)
 
         if meta_config.metrics:
             # 将指标信息保存meta数据库中
