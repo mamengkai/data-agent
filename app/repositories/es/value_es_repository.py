@@ -20,9 +20,10 @@ class ValueESRepository:
     def __init__(self, client: AsyncElasticsearch):
         self.client = client
 
-    async def ensure_index(self):
-        if not await self.client.indices.exists(index=self.index_name):
-            await self.client.indices.create(index=self.index_name, mappings=self.index_mapping)
+    async def recreate_index(self):
+        if await self.client.indices.exists(index=self.index_name):
+            await self.client.indices.delete(index=self.index_name)
+        await self.client.indices.create(index=self.index_name, mappings=self.index_mapping)
 
     async def index(self, values_infos: list[ValueInfo], batch_size=20):
         for i in range(0, len(values_infos), batch_size):
@@ -33,6 +34,7 @@ class ValueESRepository:
                     {
                         "index": {
                             "_index": self.index_name,
+                            "_id": value_info.id,
                         }
                     }
                 )

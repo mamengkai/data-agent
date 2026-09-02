@@ -5,9 +5,9 @@ from qdrant_client.models import VectorParams, Distance
 from app.conf.app_config import app_config
 
 
-class ColumnQdrantRepository:
+class MetricQdrantRepository:
 
-    collection_name = "column_info_collection"
+    collection_name = "metric_info_collection"
 
     def __init__(self, client: AsyncQdrantClient):
         self.client = client
