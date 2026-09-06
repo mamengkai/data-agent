@@ -3,8 +3,10 @@ from typing import TypedDict
 from langchain_openai import OpenAIEmbeddings
 
 from app.repositories.qdrant.column_qdrant_repository import ColumnQdrantRepository
+from app.repositories.qdrant.metric_qdrant_repository import MetricQdrantRepository
 
 
 class DataAgentContext(TypedDict):
     column_qdrant_repository: ColumnQdrantRepository
     embedding_client: OpenAIEmbeddings
+    metric_qdrant_repository: MetricQdrantRepository
