@@ -24,6 +24,15 @@ class MetricInfoState(TypedDict):
     relevant_columns: list[str]
     alias: list[str]
 
+class DateInfoState(TypedDict):
+    date: str
+    weekday: str
+    quarter: str
+
+class DBInfoState(TypedDict):
+    dialect: str
+    version: str
+
 class DataAgentState(TypedDict):
     query: str # 用户输入的查询
     keywords: list[str] # 抽取的关键词
@@ -34,6 +43,9 @@ class DataAgentState(TypedDict):
 
     table_infos: list[TableInfoState]
     metric_infos: list[MetricInfoState]
+
+    date_info: DateInfoState
+    db_info: DBInfoState
 
     error: NotRequired[str | None] # 校验SQL时出现的错误信息，无错时为 None
 
