@@ -1,5 +1,6 @@
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
+from app.core.log import logger
 
 
 class DWMySQLRepository:
@@ -24,3 +25,18 @@ class DWMySQLRepository:
 
         dialect = self.session.bind.dialect.name
         return {"dialect": dialect, "version": version}
+
+    async def validate_sql(self, sql: str):
+        sql = f"explain {sql}"
+
+        try:
+            await self.session.execute(text(sql))
+            logger.info("SQL语法正确")
+            return {"error": None}
+        except Exception as e:
+            logger.info(f"SQL语法错误：{str(e)}")
+            return {"error": str(e)}
+
+    async def run(self, sql: str) -> list[dict]:
+        result = await self.session.execute(text(sql))
+        return [dict(row) for row in result.mappings().fetchall()]
