@@ -47,5 +47,7 @@ class DataAgentState(TypedDict):
     date_info: DateInfoState
     db_info: DBInfoState
 
+    sql: str
+
     error: NotRequired[str | None] # 校验SQL时出现的错误信息，无错时为 None
 
