@@ -1,9 +1,13 @@
 import sys
+import warnings
 from pathlib import Path
 
 from loguru import logger
 
 from app.conf.app_config import app_config
+
+# jieba 在 Python 3.12+ 下正则仍用非 raw 字符串；编译期警告的 module 是文件路径，不能只匹配包名
+warnings.filterwarnings("ignore", category=SyntaxWarning, message=r"invalid escape sequence")
 
 log_format = (
     "<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green> | "

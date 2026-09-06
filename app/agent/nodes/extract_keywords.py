@@ -1,9 +1,15 @@
+import logging
+
+from app.core.log import logger
+
+import jieba
 import jieba.analyse
 from langgraph.runtime import Runtime
 
 from app.agent.context import DataAgentContext
 from app.agent.state import DataAgentState
-from app.core.log import logger
+
+jieba.setLogLevel(logging.WARNING)
 
 
 async def extract_keywords(state: DataAgentState, runtime: Runtime[DataAgentContext]):
