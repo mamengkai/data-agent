@@ -1,4 +1,4 @@
-from sqlalchemy import delete
+from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.entities.column_info import ColumnInfo
@@ -38,3 +38,23 @@ class MetaMySQLRepository:
 
     def save_column_metrics(self, column_metrics: list[ColumnMetric]):
         self.session.add_all([ColumnMetricMapper.to_model(column_metric) for column_metric in column_metrics])
+
+    async def get_column_info_by_id(self, id: str) -> ColumnInfo | None:
+        column_info: ColumnInfoMySQL | None = await self.session.get(ColumnInfoMySQL, id)
+        if column_info:
+            return ColumnInfoMapper.to_entity(column_info)
+        return None
+
+    async def get_table_info_by_id(self, id: str) -> TableInfo | None:
+        table_info: TableInfoMySQL | None = await self.session.get(TableInfoMySQL, id)
+        if table_info:
+            return TableInfoMapper.to_entity(table_info)
+        return None
+
+    async def get_key_columns_by_table_id(self, table_id: str) -> list[ColumnInfo]:
+        stmt = select(ColumnInfoMySQL).where(
+            ColumnInfoMySQL.table_id == table_id,
+            ColumnInfoMySQL.role.in_(("primary_key", "foreign_key")),
+        )
+        rows = await self.session.scalars(stmt)
+        return [ColumnInfoMapper.to_entity(row) for row in rows]
