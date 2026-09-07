@@ -5,6 +5,7 @@ from pathlib import Path
 from loguru import logger
 
 from app.conf.app_config import app_config
+from app.core.context import request_id_context_var
 
 # jieba 在 Python 3.12+ 下正则仍用非 raw 字符串；编译期警告的 module 是文件路径，不能只匹配包名
 warnings.filterwarnings("ignore", category=SyntaxWarning, message=r"invalid escape sequence")
@@ -12,11 +13,17 @@ warnings.filterwarnings("ignore", category=SyntaxWarning, message=r"invalid esca
 log_format = (
     "<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green> | "
     "<level>{level: <8}</level> | "
+    "<magenta>request_id - {extra[request_id]}</magenta> | "
     "<cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - "
     "<level>{message}</level>"
 )
 
+def inject_request_id(record):
+    record["extra"]["request_id"] = request_id_context_var.get()
+
 logger.remove()
+
+logger = logger.patch(inject_request_id)
 if app_config.logging.console.enable:
     logger.add(sink=sys.stdout, level=app_config.logging.console.level, format=log_format)
 if app_config.logging.file.enable:
